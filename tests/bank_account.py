@@ -17,8 +17,8 @@ def create_account(name, opening_balance=0):
         "transactions": [],
     }
     if opening_balance != 0:
-        # TODO: apply opening balance and record transaction
-        raise NotImplementedError("TODO: apply opening_balance")
+        acct["balance"] = opening_balance
+        acct["transactions"].append(("opening_balance", opening_balance))
     return acct
 
 def deposit(account, amount):
@@ -28,7 +28,13 @@ def deposit(account, amount):
     - modify account in-place and return True.
     """
     # TODO: implement deposit rules
-    raise NotImplementedError("TODO: implement deposit")
+    if amount < 0:
+        raise ValueError
+    else:
+        account["balance"] += amount
+        account["transactions"].append(("deposit", amount))
+    return True
+    
 
 def withdraw(account, amount):
     """
@@ -37,7 +43,14 @@ def withdraw(account, amount):
     - modify account in-place and return True.
     """
     # TODO: implement withdraw
-    raise NotImplementedError("TODO: implement withdraw")
+    if amount <= 0:
+        raise ValueError
+    if amount > account["balance"]:
+        raise ValueError
+    else:
+        account["balance"] -= amount
+        account["transactions"].append(("withdraw", amount))
+    return True
 
 def transfer(from_account, to_account, amount):
     """
@@ -49,11 +62,23 @@ def transfer(from_account, to_account, amount):
     - on failure: raise ValueError without mutating accounts.
     """
     # TODO: implement transfer safely (validate before mutating)
-    raise NotImplementedError("TODO: implement transfer")
+    if type(from_account) != dict:
+        raise ValueError
+    if type(to_account) != dict:
+        raise ValueError
+    if amount <= 0 or amount > from_account["balance"]:
+        raise ValueError
+    else:
+        from_account["balance"] -= amount
+        from_account["transactions"].append(("transfer_out", amount))
+        to_account["balance"] += amount
+        to_account["transactions"].append(("transfer_in", amount))
+    return True
+    
 
 def account_str(account):
     """
     Return a readable single-line summary like "Alice: 100"
     """
     # TODO: create and return the string
-    raise NotImplementedError("TODO: implement account_str")
+    return f"{account['name']}: {account['balance']}"
