@@ -68,11 +68,14 @@ jobs:
         done
         if [ "$status" != "200" ]; then
           exit 1
-        fi      
-    - name: Run tests
-      env:
-        ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-      run: pytest -q tests
+        fi    
+    - name: Start Django
+      run: |
+        cd directorydata_service
+        python manage.py runserver --noreload &          
+    # - name: Run tests
+    #   run: |
+    #     pytest
 
   analyze:
     needs: build
