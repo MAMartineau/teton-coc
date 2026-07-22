@@ -53,16 +53,35 @@ jobs:
         port: 5500
         index-files: |
           ["index.html", "index.htm"]   
-    - name: Start Django without readiness polling
+    - name: Start Django
       run: |
         cd directorydata_service
-        (sleep 5; python manage.py runserver --noreload > /tmp/django.log 2>&1) &
+        python manage.py runserver --noreload > /tmp/django.log 2>&1 &
 
-    - name: Run service integration tests
+    - name: Wait for readiness
+      run: |
+        status=""
+        for i in $(seq 1 30); do
+        status=$(curl -s -o /dev/null -w "%{http_code}" \
+        http://127.0.0.1:8000/data/all || true)
+
+        if [ "$status" = "200" ]; then
+        break
+        fi
+
+        sleep 1
+        done
+
+        if [ "$status" != "200" ]; then
+        cat /tmp/django.log
+        exit 1
+        fi
+
+    - name: Run tests
       env:
         ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
       run: |
-        pytest -q tests/test_service_data.py tests/test_service_users.py 
+        pytest -q tests
 
   analyze:
     needs: build
